@@ -40,10 +40,13 @@ fn gtt_children(tree: &Tree<Polynomial<i64>>) -> Vec<Tree<Polynomial<i64>>> {
         // otherwise, let the label be i, so that  (as a polynomial)
         let label = node.label();
         let f = if label.data().len() > 1 {
-            Polynomial::new(vec![(k as i64) - 1 - label.data()[0]])
+            Polynomial::new(vec![(k as i64) - 1 + label.data()[0]])
         } else if label.data().len() == 1 {
             Polynomial::new(vec![label.data()[0] + 1 - (k as i64), 1])
         } else {
+            // In the case that the label is a polynomial with empty data, 
+            // it is the root node with label equal to the zero polynomial,
+            // so the child is simply n-k+1, which we write in vector form as [1-k, 1].
             Polynomial::new(vec![1 - (k as i64), 1])
         };
         if !labels.contains(&&f) {
