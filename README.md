@@ -14,7 +14,7 @@ A graph is called *graceful* if there exists a graceful labeling of that graph. 
 
 ## This library
 
-The purpose of this library is to provide a clean way 
+The purpose of this library is to provide a clean way to visualize the tree of graceful trees (GTT). The GTT has as nodes trees with graceful labelings (where the labeling is done using a formal variable $n$; specializing $n$ to be the number of vertices of the tree - 1 produces the explicit graceful labeling), and there is an edge whenever one graceful tree contains the other. The graceful tree conjecture is true if and only if every isomorphism class of tree is present at a node in the GTT.
 
 ## Tree
 
