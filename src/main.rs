@@ -2,9 +2,9 @@ pub mod tree;
 pub mod prettyprint;
 use tree::Tree;
 use polynomial::Polynomial;
-use crate::prettyprint::PrettyPrint;
-use std::io::repeat;
 //use std::fmt::Debug;
+
+type PolyTree = Tree<Polynomial<i64>>;
 
 
 fn main() {
@@ -29,8 +29,9 @@ fn main() {
 }
 
 
-fn gtt_children(tree: &Tree<Polynomial<i64>>) -> Vec<Tree<Polynomial<i64>>> {
-    let mut out: Vec<Tree<Polynomial<i64>>> = Vec::new();
+
+fn gtt_children(tree: &PolyTree) -> Vec<PolyTree> {
+    let mut out: Vec<PolyTree> = Vec::new();
     let nodes = tree.get_nodes();
     let labels = tree.node_labels();
     let k = tree.order();

@@ -254,7 +254,7 @@ impl<T: Debug + Clone + PartialEq> Tree<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::Tree;
+    use super::*;
 
     #[test]
     fn tree_add_child() {
@@ -286,9 +286,9 @@ mod tests {
         tree.add_child(Tree::new(3));
         tree.add_child(Tree::new(4));
 
-        assert_eq!(tree.get_child(0).unwrap().label(), &2);
-        assert_eq!(tree.get_child(1).unwrap().label(), &3);
-        assert_eq!(tree.get_child(2).unwrap().label(), &4);
+        assert_eq!(tree.get_child(0).unwrap().label(), tree.get_child_label(0).unwrap());
+        assert_eq!(tree.get_child(1).unwrap().label(), tree.get_child_label(1).unwrap());
+        assert_eq!(tree.get_child(2).unwrap().label(), tree.get_child_label(2).unwrap());
     }
 
     #[test]
