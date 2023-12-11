@@ -8,6 +8,12 @@ pub trait PrettyPrint {
     }
 }
 
+impl PrettyPrint for String {
+    fn ascii(&self) -> String {
+        self.clone()
+    }
+}
+
 impl PrettyPrint for u64 {
     fn ascii(&self) -> String {
         format!("{}", self)

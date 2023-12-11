@@ -1,8 +1,11 @@
 use std::fmt::Debug;
 use super::prettyprint;
 
+/// A tree data structure.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Tree<T: Clone + PartialEq> {
+    // It is easier to have an explicit leaf type than to only allow leaves to be
+    // nodes with an empty children vector, because we want to be able to get all leaves easily later.
     Leaf {
         label: T,
     },
