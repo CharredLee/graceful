@@ -6,7 +6,7 @@ A visualization library for the Tree of Graceful Trees (GTT).
 
 ## Mathematical Background
 
-A [graceful labeling](https://en.wikipedia.org/wiki/Graceful_labeling) of a graph $G=(V,E)$ with $m$ edgets is an injective assignment $f\colon V\to\{0,\ldots,m\}$ such that the induced map sending an edge to the differences 
+A [graceful labeling](https://en.wikipedia.org/wiki/Graceful_labeling) of a graph $G=(V,E)$ with $m$ edges is an injective assignment $f\colon V\to \{ 0,\ldots,m \}$ of integer labels to the vertices such that the induced map on edges $E\to \{ 1,\ldots,m \}$ labeling an edge as the absolute value of the differences between the vertex labels is a bijection.
 
 ![Example of a Graceful Labeling of a graph, taken from Wikipedia](330px-Graceful_labeling.svg.png)
 
