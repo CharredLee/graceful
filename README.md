@@ -39,16 +39,15 @@ A fancy display style for trees with indentation has been implemented as the `pr
 ```rust
 use tree::Tree;
 // Create a new tree
-let mut tree = Tree::new();
+let mut tree = Tree::new("Root");
 // Add nodes to the tree
-let root = tree.add_node(None, "Root");
-let child1 = tree.add_node(Some(root), "Child 1");
-let child2 = tree.add_node(Some(root), "Child 2");
+let child1 = tree.add_child(Tree::new("Child 1"));
+let child2 = tree.add_child(Tree::new("Child 2"));
 // Get the children of the root node
 let children = tree.root_children(root);
 assert_eq!(children.len(), 2);
-assert_eq!(children[0].value, "Child 1");
-assert_eq!(children[1].value, "Child 2");
+assert_eq!(children[0].label(), "Child 1");
+assert_eq!(children[1].label(), "Child 2");
 // Print an ascii representation of the tree
 tree.print();
 // Print the tree with fancy indentation
