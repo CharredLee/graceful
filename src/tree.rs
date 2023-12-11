@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-
+use super::prettyprint;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Tree<T: Clone + PartialEq> {
@@ -12,6 +12,51 @@ pub enum Tree<T: Clone + PartialEq> {
     }
 }
 
+impl<T: Debug + Clone + PartialEq + prettyprint::PrettyPrint> Tree<T> {
+    /// Returns the ascii representation of the tree, with indentation.
+    pub fn ascii_pretty(&self, depth: usize, col_display: &mut Vec<bool>) -> String {
+        let mut out = String::new();
+        match self {
+            Tree::Leaf { label } => {
+                out.push_str(&format!("{}", label.ascii()));
+            }
+            Tree::Node { label, children } => {
+                out.push_str(&format!("{}", label.ascii()));
+                for (i, child) in children.iter().enumerate() {
+                    match out.chars().last().unwrap() {
+                        '\n' => {}
+                        _ => out.push('\n'),
+                    }
+                    for j in 0..depth {
+                        if col_display[j] {
+                            out.push_str(&format!("│   "));
+                        } else {
+                            out.push_str(&format!("    "));
+                        }
+                    }
+                    if i == children.len() - 1 {
+                        col_display[depth] = false;
+                        out.push_str(&format!("└── {}", child.ascii_pretty(depth + 1, col_display)));
+                    } else {
+                        col_display[depth] = true;
+                        out.push_str(&format!("├── {}", child.ascii_pretty(depth + 1, col_display)));
+                    }
+                }
+                match out.chars().last().unwrap() {
+                    '\n' => {}
+                    _ => out.push('\n'),
+                }
+            }
+        }
+        out
+    }
+
+    /// Displays the tree in the terminal as ascii, with indentation.
+    pub fn pretty_print(&self) {
+        let mut col_display = vec![true; self.depth()];
+        println!("{}", self.ascii_pretty(0, &mut col_display));
+    }
+}
 
 impl<T: Debug + Clone + PartialEq> Tree<T> {
     pub fn new(label: T) -> Self {
@@ -34,17 +79,16 @@ impl<T: Debug + Clone + PartialEq> Tree<T> {
     }
 
     /// Adds a child to *any* node with the given label.
-    pub fn add_child_at_label(&mut self, label: T, new_child: &Tree<T>) {
+    pub fn add_child_at_label(&mut self, label: &T, new_child: &Tree<T>) {
         match self {
             Tree::Leaf { label: l } => { // l[] -> l[child]
-                if *l == label {
+                if l == label {
                     *self = Tree::Node {
                         label: l.clone(),
                         children: vec![new_child.clone()],
                     }
                 }
             }
-            
             Tree::Node { label: l, children, .. } => { // tricky!!
                 // This code currently has pathological properties.
                 // Instead of adding the child to every node with the given label,
@@ -54,21 +98,20 @@ impl<T: Debug + Clone + PartialEq> Tree<T> {
                 // I will fix this later; however, for the purposes of the project I'm building
                 // this library for, it is unnecessary, since I explicitly want all nodes
                 // in my graph to have unique labels.
-                if *l == label {
+                if l == label {
                     children.push(new_child.clone());
                 } else {
                     for child in children {
-                        child.add_child_at_label(label.clone(), new_child);
+                        child.add_child_at_label(label, new_child);
                     }
                 }
-                
             }
         }
     }
 
     /// Adds a leaf to any node with the given label.
     /// Has the same pathological properties as add_child_at_label, since it is a wrapper for it.
-    pub fn add_leaf_at_label(&mut self, label: T, new_leaf: T) {
+    pub fn add_leaf_at_label(&mut self, label: &T, new_leaf: T) {
         self.add_child_at_label(label, &Tree::new(new_leaf));
     }
 
@@ -155,53 +198,9 @@ impl<T: Debug + Clone + PartialEq> Tree<T> {
         out
     }
 
-    /// Returns the ascii representation of the tree, with indentation.
-    pub fn ascii_pretty(&self, depth: usize, col_display: &mut Vec<bool>) -> String {
-        let mut out = String::new();
-        match self {
-            Tree::Leaf { label } => {
-                out.push_str(&format!("{:?}", label));
-            }
-            Tree::Node { label, children } => {
-                out.push_str(&format!("{:?}", label));
-                for (i, child) in children.iter().enumerate() {
-                    match out.chars().last().unwrap() {
-                        '\n' => {}
-                        _ => out.push('\n'),
-                    }
-                    for j in 0..depth {
-                        if col_display[j] {
-                            out.push_str(&format!("│   "));
-                        } else {
-                            out.push_str(&format!("    "));
-                        }
-                    }
-                    if i == children.len() - 1 {
-                        col_display[depth] = false;
-                        out.push_str(&format!("└── {}", child.ascii_pretty(depth + 1, col_display)));
-                    } else {
-                        col_display[depth] = true;
-                        out.push_str(&format!("├── {}", child.ascii_pretty(depth + 1, col_display)));
-                    }
-                }
-                match out.chars().last().unwrap() {
-                    '\n' => {}
-                    _ => out.push('\n'),
-                }
-            }
-        }
-        out
-    }
-
     /// Displays the tree in the terminal as ascii.
     pub fn print(&self) {
         println!("{}", self.ascii());
-    }
-
-    /// Displays the tree in the terminal as ascii, with indentation.
-    pub fn pretty_print(&self) {
-        let mut col_display = vec![true; self.depth()];
-        println!("{}", self.ascii_pretty(0, &mut col_display));
     }
 
     /// Returns the depth of the tree.
@@ -233,6 +232,22 @@ impl<T: Debug + Clone + PartialEq> Tree<T> {
                 size
             }
         }
+    }
+
+    /// Returns a vector containing all leaves in the tree.
+    pub fn leaves(&self) -> Vec<&Tree<T>> {
+        let mut out = Vec::new();
+        match self {
+            Tree::Leaf { .. } => {
+                out.push(self);
+            }
+            Tree::Node { children, .. } => {
+                for child in children {
+                    out.append(&mut child.leaves());
+                }
+            }
+        }
+        out
     }
 }
 
@@ -279,8 +294,8 @@ mod tests {
     #[test]
     fn tree_add_child_at_label_layer_1() {
         let mut tree = Tree::new(1);
-        tree.add_child_at_label(1, &Tree::new(2));
-        tree.add_child_at_label(1, &Tree::new(3));
+        tree.add_child_at_label(&1, &Tree::new(2));
+        tree.add_child_at_label(&1, &Tree::new(3));
         // should be 1[2, 3]
         assert_eq!(tree.label(), &1);
         assert_eq!(tree.get_child_label(0).unwrap(), &2);
@@ -298,7 +313,7 @@ mod tests {
         assert_eq!(tree.get_child_label(0).unwrap(), &2);
         assert_eq!(tree.get_child_label(1).unwrap(), &3);
         assert_eq!(tree.get_child_label(2).unwrap(), &4);
-        tree.add_child_at_label(2, &Tree::new(5));
+        tree.add_child_at_label(&2, &Tree::new(5));
         // should be 1[2[5], 3, 4]
         assert_eq!(tree.label(), &1);
         assert_eq!(tree.get_child_label(0).unwrap(), &2);
@@ -315,10 +330,10 @@ mod tests {
         tree.add_child(Tree::new(4));
         // should be 1[2, 3, 4]
         assert_eq!(tree.ascii(), "1[2, 3, 4]");
-        tree.add_leaf_at_label(2, 5);
+        tree.add_leaf_at_label(&2, 5);
         // should be 1[2[5], 3, 4]
         assert_eq!(tree.ascii(), "1[2[5], 3, 4]");
-        tree.add_child_at_label(5, &tree.clone());
+        tree.add_child_at_label(&5, &tree.clone());
         // should be 1[2[5[1[2[5], 3, 4]]], 3, 4]
         assert_eq!(tree.ascii(), "1[2[5[1[2[5], 3, 4]]], 3, 4]");
     }
@@ -331,10 +346,10 @@ mod tests {
         tree.add_child(Tree::new(4));
         // should be 1[2, 3, 4]
         assert!(tree.ascii_pretty(0, &mut vec![true; tree.depth()]).starts_with("1\n├── 2\n├── 3\n└── 4"));
-        tree.add_leaf_at_label(2, 5);
+        tree.add_leaf_at_label(&2, 5);
         // should be 1[2[5], 3, 4]
         assert!(tree.ascii_pretty(0, &mut vec![true; tree.depth()]).starts_with("1\n├── 2\n│   └── 5\n├── 3\n└── 4"));
-        tree.add_child_at_label(5, &tree.clone());
+        tree.add_child_at_label(&5, &tree.clone());
         // should be 1[2[5[1[2[5], 3, 4]]], 3, 4]
         assert!(tree.ascii_pretty(0, &mut vec![true; tree.depth()]).starts_with("1\n├── 2\n│   └── 5\n│       └── 1\n│           ├── 2\n│           │   └── 5\n│           ├── 3\n│           └── 4\n├── 3\n└── 4"));
     }
@@ -347,10 +362,10 @@ mod tests {
         tree.add_child(Tree::new(4));
         // should be 1[2, 3, 4]
         assert_eq!(tree.order(), 4);
-        tree.add_leaf_at_label(2, 5);
+        tree.add_leaf_at_label(&2, 5);
         // should be 1[2[5], 3, 4]
         assert_eq!(tree.order(), 5);
-        tree.add_child_at_label(5, &tree.clone());
+        tree.add_child_at_label(&5, &tree.clone());
         // should be 1[2[5[1[2[5], 3, 4]]], 3, 4]
         assert_eq!(tree.order(), 10);
     }
